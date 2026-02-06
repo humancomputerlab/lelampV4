@@ -1,0 +1,18 @@
+[project]
+name = "test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "adafruit-blinka-raspberry-pi5-neopixel>=1.0.0rc2",
+    "adafruit-circuitpython-neopixel>=6.3.21",
+    "dotenv>=0.9.9",
+    "feetech-servo-sdk>=1.0.0",
+    "flask>=3.0.0",
+    "lerobot>=0.4.2",
+    "lgpio>=0.2.2.0",
+    "mediapipe==0.10.14",
+    "rpi-ws281x>=5.0.0",
+    "websockets>=16.0",
+]
