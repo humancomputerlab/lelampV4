@@ -15,6 +15,7 @@ load_dotenv()
 from llm import LLM
 from servo_controller import SimpleServoController
 from rgb_controller import RgbController
+from vision_controller import VisionController
 import tools
 
 logging.basicConfig(
@@ -32,6 +33,7 @@ async def main():
     # Initialize controllers
     servo_controller = None
     rgb_controller = None
+    vision_controller = None
     llm = None
     
     try:
@@ -56,6 +58,16 @@ async def main():
         # 5. Register tool functions
         llm.agent.register_tools(tools)
         print(f"   ✅ Registered {len(llm.agent.tools_schema)} tool functions")
+        
+        # 6. Initialize and start vision controller
+        print("\n👁️ Initializing vision controller...")
+        vision_controller = VisionController(fps=1.0, camera_id=0)
+        if await vision_controller.start():
+            llm.set_vision_controller(vision_controller)
+            llm.agent.set_vision_controller(vision_controller)
+            print("   ✅ Vision controller ready")
+        else:
+            print("   ⚠️ Vision controller failed to start, continuing without camera")
         
         # 6. Set default idle animation (optional)
         try:
@@ -97,6 +109,13 @@ async def main():
                 print("   ✅ Servo controller disconnected")
             except Exception as e:
                 logger.warning(f"Error disconnecting servo controller: {e}")
+        
+        if vision_controller:
+            try:
+                await vision_controller.stop()
+                print("   ✅ Vision controller stopped")
+            except Exception as e:
+                logger.warning(f"Error stopping vision controller: {e}")
         
         print("\n👋 Goodbye!")
 

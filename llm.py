@@ -1,7 +1,7 @@
 import sounddevice as sd
 import logging
 import threading
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 import numpy as np
 import asyncio
 import inspect
@@ -12,6 +12,9 @@ import os
 from dotenv import load_dotenv
 import glob
 import tools
+
+if TYPE_CHECKING:
+    from vision_controller import VisionController
 
 logging.basicConfig(level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
@@ -29,6 +32,13 @@ class Agent:
         system_prompt+=f"Available animations you can play using play_recording function: {animations_list}"
         system_prompt += "\n"
         system_prompt += self.load_personality_prompt()
+        system_prompt += "\n\n## Vision Input\n"
+        system_prompt += "You periodically receive images from your camera. When processing these images:\n"
+        system_prompt += "- If there is NO user voice input, ONLY respond if you see something truly interesting or noteworthy\n"
+        system_prompt += "- Do NOT describe every image you receive\n"
+        system_prompt += "- Examples of interesting things: a person waving, unusual activity, something dangerous, user gestures\n"
+        system_prompt += "- If the scene is mundane (empty room, static objects), remain SILENT and do not respond\n"
+        system_prompt += "- When you DO respond about something you see, be natural and expressive\n"
         self.instruction = system_prompt
         self.tool_registry={}
         self.tools_schema=[]
@@ -36,6 +46,7 @@ class Agent:
         # Controller instances
         self.servo_controller = None
         self.rgb_controller = None
+        self.vision_controller = None
     
     def set_servo_controller(self, controller):
         """Set servo controller instance"""
@@ -44,6 +55,10 @@ class Agent:
     def set_rgb_controller(self, controller):
         """Set RGB controller instance"""
         self.rgb_controller = controller
+    
+    def set_vision_controller(self, controller):
+        """Set vision controller instance"""
+        self.vision_controller = controller
 
     def load_personality_prompt(self):
         with open("/home/lelamp/old_lelampv2/lelamp/personality/characters/LeLamp.json", 'r', encoding='utf-8') as f:
@@ -173,7 +188,7 @@ class LLM:
         # Configuration
         self.API_KEY = os.getenv("OPENAI_API_KEY")
         # Use the latest Realtime model
-        self.URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
+        self.URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime"
 
         # Audio configuration (OpenAI Realtime API standard is 24kHz PCM16 Mono)
         self.SAMPLE_RATE = 24000
@@ -189,6 +204,10 @@ class LLM:
         self.agent = Agent()
 
         self.device = self.get_audio_device_id()
+        
+        # Vision support
+        self.vision_controller: Optional["VisionController"] = None
+        self.is_generating = False  # Track if LLM is currently generating a response
 
     def get_audio_device_id(self) -> Optional[int]:
         """
@@ -207,6 +226,10 @@ class LLM:
                 logger.info(f"Found PipeWire device for: {dev['name']} (ID: {i})")
                 return i
         raise Exception("No pipewire found")
+    
+    def set_vision_controller(self, controller: "VisionController"):
+        """Set the vision controller for image input."""
+        self.vision_controller = controller
 
     def _fix_tools_format(self, original_tools):
         """Convert Chat Completion format tools to Realtime API format"""
@@ -290,6 +313,11 @@ class LLM:
             current_stream_type = None
             # print(message)
 
+            # Track when LLM starts generating
+            if event_type in ("response.audio.delta", "response.text.delta"):
+                self.is_generating = True
+            # print(message)
+
             # Print some logs for debugging
             # --- 1. User Voice Transcription Result (User Input) ---
             # Need to enable input_audio_transcription in session to receive this event
@@ -327,6 +355,7 @@ class LLM:
 
             # --- 3. Response Ended ---
             elif event_type == "response.done":
+                self.is_generating = False  # Mark generation as complete
                 if current_stream_type == "text":
                     print(f"") # End color
                     current_stream_type = None
@@ -338,7 +367,34 @@ class LLM:
                 arguments = event["arguments"]
 
                 print(f"\n[System] AI requests tool call: {name}({arguments})")
-                output_str = await self.agent.execute(name, arguments, self.agent)
+                
+                # Special handling for get_scene: send image directly to LLM
+                if name == "get_scene" and self.vision_controller:
+                    image_b64 = self.vision_controller.get_latest_image()
+                    print(image_b64)
+                    if image_b64:
+                        # Send image as input_image message
+                        image_event = {
+                            "type": "conversation.item.create",
+                            "item": {
+                                "type": "message",
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "input_image",
+                                        "image_url": f"data:image/jpeg;base64,{image_b64}"
+                                    }
+                                ]
+                            }
+                        }
+                        await websocket.send(json.dumps(image_event))
+                        print("[System] Image sent to LLM")
+                        output_str = "Image has been sent. Answer the user based on what you see"
+                    else:
+                        output_str = "No image available from camera."
+                else:
+                    output_str = await self.agent.execute(name, arguments, self.agent)
+                
                 print(output_str)
                 # 1. Create a new conversation item (Item) consisting of tool output
                 item_create_event = {
@@ -360,6 +416,64 @@ class LLM:
                 }
                 await websocket.send(json.dumps(response_create_event))
 
+    async def send_image(self, websocket):
+        return 
+        """Send images from vision controller when LLM is not generating."""
+        if not self.vision_controller:
+            logger.warning("No vision controller set, image sending disabled")
+            return
+        
+        logger.info("Starting image sending task")
+        while True:
+            try:
+                # Wait a bit before checking
+                await asyncio.sleep(1.0)
+                
+                # Only send if not generating a response
+                if self.is_generating:
+                    continue
+                
+                # Try to get an image from the queue
+                image_b64 = self.vision_controller.get_latest_image()
+                if not image_b64:
+                    continue
+                
+                logger.info("Sending image to LLM...")
+                
+                # Create a conversation item with the image
+                item_create_event = {
+                    "type": "conversation.item.create",
+                    "item": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_image",
+                                "image": f"data:image/jpeg;base64,{image_b64}"
+                            }
+                        ]
+                    }
+                }
+                await websocket.send(json.dumps(item_create_event))
+                
+                # Trigger a response
+                response_create_event = {
+                    "type": "response.create",
+                    "response": {
+                        "modalities": ["text", "audio"],
+                    }
+                }
+                await websocket.send(json.dumps(response_create_event))
+                
+                # Mark as generating to avoid sending multiple images
+                self.is_generating = True
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error sending image: {e}")
+                await asyncio.sleep(1.0)
+
     async def start(self):
         headers = {
             "Authorization": "Bearer " + self.API_KEY,
@@ -367,7 +481,13 @@ class LLM:
         }
 
         print("Connecting to OpenAI Realtime API...")
-        async with websockets.connect(self.URL, additional_headers=headers) as websocket:
+        async with websockets.connect(
+            self.URL,
+            additional_headers=headers,
+            ping_interval=30,      # Send ping every 30 seconds
+            ping_timeout=60,       # Wait 60 seconds for pong response
+            close_timeout=10       # Graceful close timeout
+        ) as websocket:
 
             # 1. Initialize session (Optional: set voice, VAD mode, etc.)
             session_update = {
@@ -411,8 +531,9 @@ class LLM:
                 # 3. Run send and receive tasks concurrently
                 send_task = asyncio.create_task(self.send_audio(websocket))
                 receive_task = asyncio.create_task(self.receive(websocket))
+                image_task = asyncio.create_task(self.send_image(websocket))
 
                 try:
-                    await asyncio.gather(send_task, receive_task)
+                    await asyncio.gather(send_task, receive_task, image_task)
                 except KeyboardInterrupt:
                     print("Stopping conversation...")
