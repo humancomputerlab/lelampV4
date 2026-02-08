@@ -61,11 +61,11 @@ class Agent:
         self.vision_controller = controller
 
     def load_personality_prompt(self):
-        with open("/home/lelamp/old_lelampv2/lelamp/personality/characters/LeLamp.json", 'r', encoding='utf-8') as f:
+        with open("personality/characters/LeLamp.json", 'r', encoding='utf-8') as f:
             personality = json.load(f)
 
         # 2. Read instruction template file
-        with open("/home/lelamp/old_lelampv2/lelamp/personality/instructions.txt", 'r', encoding='utf-8') as f:
+        with open("personality/instructions.txt", 'r', encoding='utf-8') as f:
             template = f.read()
 
         # 3. Prepare fill data
