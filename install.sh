@@ -171,6 +171,9 @@ install_dependencies() {
     print_info "Installing audio tools (sox, mpg123)..."
     sudo apt-get install -y sox libsox-fmt-mp3 mpg123 alsa-utils
 
+    print_info "Installing pipewire for audio streaming..."
+    sudo apt-get install -y pipewire pipewire-alsa pipewire-pulse
+
     print_info "Installing build essentials..."
     sudo apt-get install -y build-essential python3-dev
 
