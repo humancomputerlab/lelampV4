@@ -10,7 +10,7 @@ from lerobot.motors.feetech import FeetechMotorsBus, OperatingMode
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CALIBRATION_PATH = Path("/home/lelamp/.lelamp/calibration/lelamp.json")
+DEFAULT_CALIBRATION_PATH = Path(__file__).parent / "lelamp.json"
 DEFAULT_ANIMATIONS_DIR = Path(__file__).parent / "servo_animations"
 
 

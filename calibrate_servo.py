@@ -8,10 +8,9 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 from pathlib import Path
-
-import yaml
 from lerobot.motors import Motor, MotorCalibration, MotorNormMode
 from lerobot.motors.feetech import FeetechMotorsBus, OperatingMode
 
@@ -28,14 +27,11 @@ MOTORS = {
 }
 
 DEFAULT_PORT = "/dev/lelamp"
-CALIBRATION_DIR = Path.home() / ".lelamp" / "calibration"
-CALIBRATION_FILE = CALIBRATION_DIR / "config.yaml"
+CALIBRATION_FILE = Path("./lelamp.json")
 
 
 def save_calibration(calibration: dict, filepath: Path) -> None:
-    """Save calibration data to YAML file."""
-    filepath.parent.mkdir(parents=True, exist_ok=True)
-    
+    """Save calibration data to JSON file."""
     # Convert MotorCalibration objects to dicts
     data = {}
     for motor_name, cal in calibration.items():
@@ -48,7 +44,7 @@ def save_calibration(calibration: dict, filepath: Path) -> None:
         }
     
     with open(filepath, 'w') as f:
-        yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+        json.dump(data, f, indent=4)
     
     logger.info(f"Calibration saved to: {filepath}")
 
