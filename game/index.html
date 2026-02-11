@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeLamp Space Invaders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SN+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; font-family: 'SN Pro', sans-serif; }
+    canvas { display: block; }
+
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #score {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #0f0;
+      font-size: 24px;
+      text-shadow: 0 0 10px #0f0;
+    }
+
+    #wave-display {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: #0ff;
+      font-size: 24px;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    #health {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #f00;
+      font-size: 24px;
+      text-shadow: 0 0 10px #f00;
+    }
+
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+    }
+
+    #wave-announce {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff0;
+      font-size: 48px;
+      text-shadow: 0 0 20px #ff0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #game-over-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      color: #f00;
+      font-size: 64px;
+      text-shadow: 0 0 30px #f00;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #game-over-screen .final-score {
+      font-size: 32px;
+      color: #fff;
+      margin-top: 20px;
+    }
+
+    #game-over-screen .restart-hint {
+      font-size: 20px;
+      color: #888;
+      margin-top: 30px;
+    }
+
+    #start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.9);
+      color: #0f0;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    #start-screen h1 {
+      font-size: 48px;
+      text-shadow: 0 0 20px #0f0;
+      margin-bottom: 20px;
+    }
+
+    #start-screen .subtitle {
+      font-size: 20px;
+      color: #0ff;
+      margin-bottom: 40px;
+    }
+
+    #start-screen .start-hint {
+      font-size: 18px;
+      color: #888;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    #connection-status {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    #debug-indicator {
+      position: absolute;
+      top: 50px;
+      left: 20px;
+      color: #ff0;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div id="score">0</div>
+    <div id="wave-display">WAVE: 1</div>
+    <div id="health"></div>
+    <svg id="crosshair" viewBox="0 0 60 60">
+      <!-- Crosshair lines -->
+      <line x1="30" y1="5" x2="30" y2="20" stroke="#0f0" stroke-width="2" />
+      <line x1="30" y1="40" x2="30" y2="55" stroke="#0f0" stroke-width="2" />
+      <line x1="5" y1="30" x2="20" y2="30" stroke="#0f0" stroke-width="2" />
+      <line x1="40" y1="30" x2="55" y2="30" stroke="#0f0" stroke-width="2" />
+      <!-- Cooldown ring -->
+      <circle id="cooldown-ring" cx="30" cy="30" r="25" fill="none"
+              stroke="#0f0" stroke-width="2" stroke-dasharray="157" stroke-dashoffset="0"
+              transform="rotate(-90 30 30)" opacity="0.5" />
+      <g id="enemy-indicator" transform="rotate(0 30 30)" opacity="0">
+        <polygon points="30,2 26,9 34,9" fill="#ff4400" />
+      </g>
+    </svg>
+    <div id="wave-announce"></div>
+    <div id="connection-status" style="display:none"></div>
+    <div id="debug-indicator" style="display:none"></div>
+  </div>
+
+  <div id="start-screen">
+    <div class="start-hint">CLICK TO START</div>
+  </div>
+
+  <div id="game-over-screen">
+    GAME OVER
+    <div class="final-score"></div>
+    <div class="restart-hint">CLICK TO RESTART</div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

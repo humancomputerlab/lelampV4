@@ -3287,33 +3287,40 @@ name = "test"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "dotenv" },
+    { name = "flask" },
+    { name = "numpy" },
+    { name = "openai" },
+    { name = "websockets" },
+]
+
+[package.optional-dependencies]
+pi = [
     { name = "adafruit-blinka-raspberry-pi5-neopixel" },
     { name = "adafruit-circuitpython-neopixel" },
-    { name = "dotenv" },
     { name = "feetech-servo-sdk" },
-    { name = "flask" },
     { name = "lerobot" },
     { name = "lgpio" },
     { name = "mediapipe" },
-    { name = "openai" },
     { name = "rpi-ws281x" },
-    { name = "websockets" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "adafruit-blinka-raspberry-pi5-neopixel", specifier = ">=1.0.0rc2" },
-    { name = "adafruit-circuitpython-neopixel", specifier = ">=6.3.21" },
+    { name = "adafruit-blinka-raspberry-pi5-neopixel", marker = "extra == 'pi'", specifier = ">=1.0.0rc2" },
+    { name = "adafruit-circuitpython-neopixel", marker = "extra == 'pi'", specifier = ">=6.3.21" },
     { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "feetech-servo-sdk", specifier = ">=1.0.0" },
+    { name = "feetech-servo-sdk", marker = "extra == 'pi'", specifier = ">=1.0.0" },
     { name = "flask", specifier = ">=3.0.0" },
-    { name = "lerobot", specifier = ">=0.4.2" },
-    { name = "lgpio", specifier = ">=0.2.2.0" },
-    { name = "mediapipe", specifier = "==0.10.14" },
+    { name = "lerobot", marker = "extra == 'pi'", specifier = ">=0.4.2" },
+    { name = "lgpio", marker = "extra == 'pi'", specifier = ">=0.2.2.0" },
+    { name = "mediapipe", marker = "extra == 'pi'", specifier = "==0.10.14" },
+    { name = "numpy" },
     { name = "openai", specifier = ">=2.17.0" },
-    { name = "rpi-ws281x", specifier = ">=5.0.0" },
+    { name = "rpi-ws281x", marker = "extra == 'pi'", specifier = ">=5.0.0" },
     { name = "websockets", specifier = ">=16.0" },
 ]
+provides-extras = ["pi"]
 
 [[package]]
 name = "toml"

@@ -166,6 +166,16 @@ class SimpleServoController:
             raise RuntimeError("Not connected")
         return self.bus.sync_read("Present_Position")
 
+    def disable_torque(self):
+        if not self._connected or not self.bus:
+            raise RuntimeError("Not connected")
+        self.bus.disable_torque()
+
+    def enable_torque(self):
+        if not self._connected or not self.bus:
+            raise RuntimeError("Not connected")
+        self.bus.enable_torque()
+
     def _resolve_animation_path(self, csv_path: str) -> Path:
         """
         Resolve animation file path.

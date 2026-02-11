@@ -1,0 +1,12 @@
+{
+  "documentId": "1a1833bc4c8907ac4cd99037",
+  "workspaceId": "ee4c170496e9a387969f62ff",
+  "elementId": "a3d550af07fd1f323c53e485",
+  "outputFormat": "urdf",
+  "drawFrames": false,
+  "drawCollisions": false,
+  "useScads": false,
+  "noDynamics": false,
+  "jointMaxEffort": 1.0,
+  "jointMaxVelocity": 10.0
+}

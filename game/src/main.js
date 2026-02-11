@@ -1,0 +1,253 @@
+import * as THREE from 'three';
+import { GameWebSocket } from './websocket.js';
+import { CameraController } from './camera.js';
+import { EnemySystem } from './enemies.js';
+import { ShootingSystem } from './shooting.js';
+import { HUD } from './hud.js';
+import { EffectsSystem } from './effects.js';
+
+// --- Configuration ---
+const WS_PORT = 8765;
+const MAX_HEALTH = 3;
+const POINTS_PER_KILL = 100;
+const WAVE_DELAY = 3; // seconds between waves
+
+// --- Detect debug mode from URL ---
+const urlParams = new URLSearchParams(window.location.search);
+let debugMode = urlParams.has('debug');
+
+// --- Three.js setup ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111122);
+scene.fog = new THREE.Fog(0x111122, 40, 80);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x404060, 0.6);
+scene.add(ambient);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(10, 20, 10);
+scene.add(dirLight);
+
+// Ground grid
+const gridHelper = new THREE.GridHelper(100, 50, 0x222244, 0x222244);
+gridHelper.position.y = 0;
+scene.add(gridHelper);
+
+// Starfield
+const starGeo = new THREE.BufferGeometry();
+const starPositions = [];
+for (let i = 0; i < 1000; i++) {
+  const r = 80 + Math.random() * 40;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  starPositions.push(
+    r * Math.sin(phi) * Math.cos(theta),
+    r * Math.sin(phi) * Math.sin(theta),
+    r * Math.cos(phi),
+  );
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
+scene.add(new THREE.Points(starGeo, starMat));
+
+// --- Systems ---
+const hud = new HUD();
+const enemies = new EnemySystem(scene);
+const shooting = new ShootingSystem(camera);
+const effects = new EffectsSystem(scene);
+let cameraCtrl = null;
+
+// --- WebSocket ---
+const ws = new GameWebSocket();
+
+ws.addEventListener('connected', () => hud.setConnected(true));
+ws.addEventListener('disconnected', () => hud.setConnected(false));
+
+ws.addEventListener('config', (e) => {
+  // Server can indicate debug mode
+  if (e.detail.debug && !debugMode) {
+    debugMode = true;
+    initCamera();
+  }
+});
+
+ws.addEventListener('position', (e) => {
+  if (cameraCtrl) {
+    cameraCtrl.update(e.detail.yaw, e.detail.pitch);
+  }
+});
+
+// --- Game state ---
+let gameState = 'start'; // 'start' | 'playing' | 'wave_transition' | 'game_over'
+let health = MAX_HEALTH;
+let wave = 0;
+let waveTimer = 0;
+const clock = new THREE.Clock();
+
+// --- Camera init ---
+function initCamera() {
+  cameraCtrl = new CameraController(camera, renderer, debugMode);
+  hud.setDebugMode(debugMode);
+}
+
+// --- Game flow ---
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('game-over-screen').style.display = 'none';
+
+  gameState = 'playing';
+  health = MAX_HEALTH;
+  wave = 0;
+  hud.reset();
+  enemies.clear();
+  effects.clear();
+  shooting.start();
+
+  nextWave();
+}
+
+function nextWave() {
+  wave++;
+  hud.updateWave(wave);
+  hud.announceWave(wave);
+  enemies.startWave(wave);
+
+  ws.send({ type: 'wave_start', wave });
+}
+
+function gameOver() {
+  gameState = 'game_over';
+  shooting.stop();
+
+  const screen = document.getElementById('game-over-screen');
+  screen.style.display = 'flex';
+  screen.querySelector('.final-score').textContent = `SCORE: ${hud.score}`;
+
+  ws.send({ type: 'game_over', score: hud.score });
+}
+
+// --- Input ---
+document.getElementById('start-screen').addEventListener('click', () => {
+  startGame();
+});
+
+document.getElementById('game-over-screen').addEventListener('click', () => {
+  startGame();
+});
+
+// --- Resize ---
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// --- Game loop ---
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent spiraling
+
+  if (cameraCtrl) cameraCtrl.tick();
+
+  if (gameState === 'playing') {
+    // Update enemies
+    const reached = enemies.tick(dt);
+    if (reached > 0) {
+      health -= reached;
+      hud.updateHealth(health);
+      if (health <= 0) {
+        gameOver();
+        return;
+      }
+    }
+
+    // Auto-shoot
+    const shotResult = shooting.tick(dt, enemies.meshes);
+    if (shotResult?.fired) {
+      ws.send({ type: 'shoot' });
+
+      // Projectile visual
+      effects.spawnProjectile(camera.position.clone(), shotResult.point);
+
+      if (shotResult.hit) {
+        // Hit!
+        const pos = shotResult.hit.position.clone();
+        enemies.removeEnemy(shotResult.hit);
+        effects.explode(pos, 0xff4400);
+        if (shotResult.point) effects.spawnHitMarker(shotResult.point);
+        hud.addScore(POINTS_PER_KILL);
+        ws.send({ type: 'hit', points: POINTS_PER_KILL });
+      } else {
+        ws.send({ type: 'miss' });
+      }
+    }
+
+    // Nearest enemy indicator
+    if (enemies.enemies.length > 0) {
+      let nearestDist = Infinity;
+      let nearestScreen = null;
+
+      for (const enemy of enemies.enemies) {
+        const dist = enemy.mesh.position.length();
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestScreen = enemy.mesh.position.clone().project(camera);
+        }
+      }
+
+      const angleDeg = Math.atan2(nearestScreen.x, nearestScreen.y) * (180 / Math.PI);
+      const opacity = THREE.MathUtils.clamp(1 - nearestDist / 50, 0.3, 1.0);
+      const screenDist = Math.sqrt(nearestScreen.x ** 2 + nearestScreen.y ** 2);
+      const visible = screenDist > 0.1;
+
+      hud.updateEnemyIndicator(angleDeg, opacity, visible);
+    } else {
+      hud.updateEnemyIndicator(0, 0, false);
+    }
+
+    // Cooldown ring
+    hud.updateCooldown(shooting.cooldownProgress);
+
+    // Wave completion check
+    if (enemies.waveComplete) {
+      gameState = 'wave_transition';
+      waveTimer = WAVE_DELAY;
+    }
+  } else if (gameState === 'wave_transition') {
+    waveTimer -= dt;
+    if (waveTimer <= 0) {
+      gameState = 'playing';
+      nextWave();
+    }
+  }
+
+  // Effects always tick
+  effects.tick(dt);
+
+  renderer.render(scene, camera);
+}
+
+// --- Init ---
+function init() {
+  // Connect WebSocket to the server on the same host (or localhost for debug)
+  const wsHost = window.location.hostname || 'localhost';
+  ws.connect(`ws://${wsHost}:${WS_PORT}`);
+
+  initCamera();
+  hud.updateHealth(MAX_HEALTH);
+
+  clock.start();
+  animate();
+}
+
+init();
