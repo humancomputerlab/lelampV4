@@ -11,3 +11,4 @@ __pycache__/
 *.pyzwz
 
 CLAUDE.md
+node_modules/
