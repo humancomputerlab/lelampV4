@@ -19,8 +19,8 @@ const godMode = urlParams.has('godmode');
 
 // --- Three.js setup ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x111122);
-scene.fog = new THREE.Fog(0x111122, 40, 80);
+scene.background = new THREE.Color(0x888888);
+scene.fog = new THREE.Fog(0x888888, 40, 80);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(0, 0, 0);
@@ -31,34 +31,70 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
 // Lighting
-const ambient = new THREE.AmbientLight(0x404060, 0.6);
+const ambient = new THREE.AmbientLight(0x808080, 0.8);
 scene.add(ambient);
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(10, 20, 10);
 scene.add(dirLight);
 
-// Ground grid
-const gridHelper = new THREE.GridHelper(100, 50, 0x222244, 0x222244);
-gridHelper.position.y = 0;
-scene.add(gridHelper);
+// Warehouse walls
+function createGridTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
 
-// Starfield
-const starGeo = new THREE.BufferGeometry();
-const starPositions = [];
-for (let i = 0; i < 1000; i++) {
-  const r = 80 + Math.random() * 40;
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
-  starPositions.push(
-    r * Math.sin(phi) * Math.cos(theta),
-    r * Math.sin(phi) * Math.sin(theta),
-    r * Math.cos(phi),
-  );
+  ctx.fillStyle = '#999999';
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.strokeStyle = '#222222';
+  ctx.lineWidth = 2;
+  const cellSize = size / 8;
+  for (let i = 0; i <= 8; i++) {
+    const pos = i * cellSize;
+    ctx.beginPath();
+    ctx.moveTo(pos, 0);
+    ctx.lineTo(pos, size);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, pos);
+    ctx.lineTo(size, pos);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  return texture;
 }
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
-const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 });
-scene.add(new THREE.Points(starGeo, starMat));
+
+{
+  const wallSize = 120;
+  const halfSize = wallSize / 2;
+  const wallGeo = new THREE.PlaneGeometry(wallSize, wallSize);
+
+  const walls = [
+    { pos: [0, 0, -halfSize], rot: [0, 0, 0] },           // front
+    { pos: [0, 0, halfSize], rot: [0, Math.PI, 0] },       // back
+    { pos: [-halfSize, 0, 0], rot: [0, Math.PI / 2, 0] },  // left
+    { pos: [halfSize, 0, 0], rot: [0, -Math.PI / 2, 0] },  // right
+    { pos: [0, -0.5, 0], rot: [-Math.PI / 2, 0, 0], floor: true }, // floor
+    { pos: [0, halfSize, 0], rot: [Math.PI / 2, 0, 0] },   // ceiling
+  ];
+
+  for (const w of walls) {
+    const tex = createGridTexture();
+    if (w.floor) tex.repeat.set(16, 16);
+    const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.FrontSide });
+    const mesh = new THREE.Mesh(wallGeo, mat);
+    mesh.position.set(...w.pos);
+    mesh.rotation.set(...w.rot);
+    scene.add(mesh);
+  }
+}
 
 // --- Systems ---
 const hud = new HUD();
