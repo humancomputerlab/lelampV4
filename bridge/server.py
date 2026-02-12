@@ -14,6 +14,7 @@ from pathlib import Path
 import websockets
 
 from .forward_kinematics import compute_fk
+from .sounds import play_shoot
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +65,13 @@ async def broadcast(message: dict):
 async def handle_game_event(event: dict):
     """Handle events sent from the game (hit, miss, shoot, wave, game_over)."""
     global rgb_controller
+    event_type = event.get("type")
+
+    if event_type == "shoot":
+        play_shoot()
+
     if rgb_controller is None:
         return
-
-    event_type = event.get("type")
     try:
         if event_type == "shoot":
             rgb_controller.set_solid(255, 255, 0)  # Yellow flash

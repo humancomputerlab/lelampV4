@@ -10,6 +10,8 @@ dependencies = [
     "numpy",
     "openai>=2.17.0",
     "websockets>=16.0",
+    "sounddevice>=0.4.6",
+    "soundfile>=0.12.1",
 ]
 
 [project.optional-dependencies]
