@@ -49,6 +49,6 @@ export class CameraController {
 
     this.camera.rotation.y = this.currentYaw;
     // Clamp pitch to upper hemisphere only (0 = horizon, -PI/2 = straight up)
-    this.camera.rotation.x = THREE.MathUtils.clamp(this.currentPitch, -Math.PI / 2, 0);
+    this.camera.rotation.x = THREE.MathUtils.clamp(this.currentPitch, -Math.PI / 2, Math.PI / 2);
   }
 }

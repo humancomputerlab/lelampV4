@@ -15,6 +15,7 @@ const WAVE_DELAY = 3; // seconds between waves
 // --- Detect debug mode from URL ---
 const urlParams = new URLSearchParams(window.location.search);
 let debugMode = urlParams.has('debug');
+const godMode = urlParams.has('godmode');
 
 // --- Three.js setup ---
 const scene = new THREE.Scene();
@@ -162,7 +163,7 @@ function animate() {
   if (gameState === 'playing') {
     // Update enemies
     const reached = enemies.tick(dt);
-    if (reached > 0) {
+    if (reached > 0 && !godMode) {
       health -= reached;
       hud.updateHealth(health);
       if (health <= 0) {
