@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GameWebSocket } from './websocket.js';
 import { CameraController } from './camera.js';
+import { PlayerModel } from './player.js';
 import { EnemySystem } from './enemies.js';
 import { ShootingSystem } from './shooting.js';
 import { HUD } from './hud.js';
@@ -98,6 +99,7 @@ function createGridTexture() {
 
 // --- Systems ---
 const hud = new HUD();
+const player = new PlayerModel(scene);
 const enemies = new EnemySystem(scene);
 const shooting = new ShootingSystem(camera);
 const effects = new EffectsSystem(scene);
@@ -194,7 +196,10 @@ function animate() {
 
   const dt = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent spiraling
 
-  if (cameraCtrl) cameraCtrl.tick();
+  if (cameraCtrl) {
+    cameraCtrl.tick();
+    player.setYaw(cameraCtrl.currentYawValue);
+  }
 
   if (gameState === 'playing') {
     // Update enemies
@@ -213,8 +218,10 @@ function animate() {
     if (shotResult?.fired) {
       ws.send({ type: 'shoot' });
 
-      // Projectile visual
-      effects.spawnProjectile(camera.position.clone(), shotResult.point);
+      // Projectile visual — originates from the player model
+      const camForward = new THREE.Vector3();
+      camera.getWorldDirection(camForward);
+      effects.spawnProjectile(player.mesh.position.clone(), shotResult.point, camForward);
 
       if (shotResult.hit) {
         // Hit!

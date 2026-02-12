@@ -37,20 +37,45 @@ export class EffectsSystem {
     this.explosions.push({ particles, life: PARTICLE_LIFE });
   }
 
-  /** Spawn a projectile line from camera toward a point. */
-  spawnProjectile(from, to) {
-    const dir = to ? to.clone().sub(from).normalize() : new THREE.Vector3(0, 0, -1);
-    const length = 3;
+  /** Spawn a solid ray beam from a point toward a target (or fallback direction). */
+  spawnProjectile(from, to, fallbackDir) {
+    const dir = to ? to.clone().sub(from).normalize() : (fallbackDir || new THREE.Vector3(0, 0, -1));
+    const endpoint = to || from.clone().addScaledVector(dir, 100);
+    const length = from.distanceTo(endpoint);
+    const midpoint = from.clone().add(endpoint).multiplyScalar(0.5);
 
-    const geo = new THREE.BufferGeometry().setFromPoints([
-      from.clone(),
-      from.clone().addScaledVector(dir, length),
-    ]);
-    const mat = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
-    const line = new THREE.Line(geo, mat);
-    this.scene.add(line);
+    const group = new THREE.Group();
+    const rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
 
-    this.projectiles.push({ mesh: line, life: 0.15 });
+    // Thin bright core
+    const beamGeo = new THREE.CylinderGeometry(0.75, 0.75, length, 6, 1);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.copy(midpoint);
+    beam.quaternion.copy(rot);
+    group.add(beam);
+
+    // Wider outer glow
+    const glowGeo = new THREE.CylinderGeometry(2.5, 2.5, length, 6, 1);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.position.copy(midpoint);
+    glow.quaternion.copy(rot);
+    group.add(glow);
+
+    this.scene.add(group);
+
+    this.projectiles.push({ mesh: group, life: 0.62, beam, glow, startLife: 0.62 });
   }
 
   /** Spawn a hit marker (brief flash) at a world position. */
@@ -95,6 +120,11 @@ export class EffectsSystem {
         this.scene.remove(proj.mesh);
         if (proj.mesh.geometry) proj.mesh.geometry.dispose();
         this.projectiles.splice(i, 1);
+      } else if (proj.beam) {
+        // Fade the beam out
+        const t = proj.life / proj.startLife;
+        proj.beam.material.opacity = 0.9 * t;
+        proj.glow.material.opacity = 0.3 * t;
       }
     }
   }

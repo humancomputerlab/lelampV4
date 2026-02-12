@@ -12,3 +12,4 @@ __pycache__/
 
 CLAUDE.md
 node_modules/
+game/dist/
