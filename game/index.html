@@ -80,24 +80,129 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       color: #f00;
       font-size: 64px;
       text-shadow: 0 0 30px #f00;
       pointer-events: auto;
-      cursor: pointer;
+      cursor: default;
+      gap: 10px;
+    }
+
+    #game-over-screen .final-wave {
+      font-size: 28px;
+      color: #0ff;
+      text-shadow: 0 0 15px #0ff;
     }
 
     #game-over-screen .final-score {
       font-size: 32px;
       color: #fff;
-      margin-top: 20px;
+      margin-top: 5px;
+    }
+
+    /* Name entry */
+    #name-entry {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 15px;
+      gap: 10px;
+    }
+
+    #name-entry label {
+      font-size: 18px;
+      color: #0f0;
+      text-shadow: 0 0 10px #0f0;
+    }
+
+    #name-entry input {
+      font-family: 'SN Pro', sans-serif;
+      font-size: 24px;
+      text-align: center;
+      width: 200px;
+      padding: 8px 12px;
+      background: rgba(0, 255, 0, 0.1);
+      border: 2px solid #0f0;
+      color: #0f0;
+      outline: none;
+      text-transform: uppercase;
+    }
+
+    #name-entry input::placeholder {
+      color: rgba(0, 255, 0, 0.3);
+    }
+
+    #name-entry button {
+      font-family: 'SN Pro', sans-serif;
+      font-size: 16px;
+      padding: 8px 24px;
+      background: transparent;
+      border: 2px solid #0f0;
+      color: #0f0;
+      cursor: pointer;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #0f0;
+      transition: background 0.2s;
+    }
+
+    #name-entry button:hover {
+      background: rgba(0, 255, 0, 0.2);
+    }
+
+    /* Leaderboard */
+    #leaderboard {
+      margin-top: 15px;
+      width: 340px;
+    }
+
+    #leaderboard h2 {
+      font-size: 22px;
+      color: #ff0;
+      text-shadow: 0 0 15px #ff0;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    #leaderboard table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #leaderboard th {
+      font-size: 13px;
+      color: #888;
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    #leaderboard th:last-child,
+    #leaderboard td:last-child {
+      text-align: right;
+    }
+
+    #leaderboard td {
+      font-size: 16px;
+      color: #ccc;
+      padding: 4px 8px;
+    }
+
+    #leaderboard tr.current td {
+      color: #0f0;
+      text-shadow: 0 0 8px #0f0;
+    }
+
+    #leaderboard .rank {
+      color: #888;
+      width: 30px;
     }
 
     #game-over-screen .restart-hint {
-      font-size: 20px;
+      font-size: 18px;
       color: #888;
-      margin-top: 30px;
+      margin-top: 15px;
+      cursor: pointer;
     }
 
     #start-screen {
@@ -187,8 +292,21 @@
 
   <div id="game-over-screen">
     GAME OVER
+    <div class="final-wave"></div>
     <div class="final-score"></div>
-    <div class="restart-hint">CLICK TO RESTART</div>
+    <div id="name-entry">
+      <label>ENTER YOUR NAME</label>
+      <input type="text" id="player-name" maxlength="12" placeholder="AAA" autocomplete="off" />
+      <button id="submit-score">SUBMIT</button>
+    </div>
+    <div id="leaderboard">
+      <h2>LEADERBOARD</h2>
+      <table>
+        <thead><tr><th></th><th>NAME</th><th>WAVE</th><th>SCORE</th></tr></thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+    <div class="restart-hint">CLICK HERE TO RESTART</div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

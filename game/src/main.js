@@ -6,6 +6,7 @@ import { EnemySystem } from './enemies.js';
 import { ShootingSystem } from './shooting.js';
 import { HUD } from './hud.js';
 import { EffectsSystem } from './effects.js';
+import { Leaderboard } from './leaderboard.js';
 
 // --- Configuration ---
 const WS_PORT = 8765;
@@ -99,6 +100,7 @@ function createGridTexture() {
 
 // --- Systems ---
 const hud = new HUD();
+const leaderboard = new Leaderboard();
 const player = new PlayerModel(scene);
 const enemies = new EnemySystem(scene);
 const shooting = new ShootingSystem(camera);
@@ -149,6 +151,7 @@ function initCamera() {
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('game-over-screen').style.display = 'none';
+  document.getElementById('hud').style.display = 'block';
 
   gameState = 'playing';
   health = MAX_HEALTH;
@@ -173,12 +176,16 @@ function nextWave() {
 function gameOver() {
   gameState = 'game_over';
   shooting.stop();
+  document.getElementById('hud').style.display = 'none';
 
   const screen = document.getElementById('game-over-screen');
   screen.style.display = 'flex';
+  screen.querySelector('.final-wave').textContent = `REACHED WAVE ${wave}`;
   screen.querySelector('.final-score').textContent = `SCORE: ${hud.score}`;
 
-  ws.send({ type: 'game_over', score: hud.score });
+  leaderboard.show(wave, hud.score);
+
+  ws.send({ type: 'game_over', score: hud.score, wave });
 }
 
 // --- Input ---
@@ -186,7 +193,7 @@ document.getElementById('start-screen').addEventListener('click', () => {
   startGame();
 });
 
-document.getElementById('game-over-screen').addEventListener('click', () => {
+document.querySelector('#game-over-screen .restart-hint').addEventListener('click', () => {
   startGame();
 });
 
