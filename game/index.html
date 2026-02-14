@@ -139,6 +139,49 @@
       50% { opacity: 0.3; }
     }
 
+    #stamina-bar-container {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #0f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #stamina-bar-fill {
+      width: 100%;
+      height: 100%;
+      background: #0f0;
+      border-radius: 5px;
+      transition: width 0.1s linear;
+    }
+
+    #stamina-bar-container.empty #stamina-bar-fill {
+      background: #f00;
+    }
+
+    #stamina-label {
+      position: absolute;
+      bottom: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #0f0;
+      font-size: 12px;
+      text-shadow: 0 0 6px #0f0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    #stamina-label.empty {
+      color: #f00;
+      text-shadow: 0 0 6px #f00;
+      animation: blink 0.5s infinite;
+    }
+
     #connection-status {
       position: absolute;
       bottom: 20px;
@@ -177,6 +220,10 @@
       </g>
     </svg>
     <div id="wave-announce"></div>
+    <div id="stamina-label">STAMINA</div>
+    <div id="stamina-bar-container">
+      <div id="stamina-bar-fill"></div>
+    </div>
     <div id="connection-status" style="display:none"></div>
     <div id="debug-indicator" style="display:none"></div>
   </div>
