@@ -39,6 +39,8 @@ export class EffectsSystem {
 
   /** Spawn a solid ray beam from a point toward a target (or fallback direction). */
   spawnProjectile(from, to, fallbackDir) {
+    from = from.clone();
+    from.y += 1.5;
     const dir = to ? to.clone().sub(from).normalize() : (fallbackDir || new THREE.Vector3(0, 0, -1));
     const endpoint = to || from.clone().addScaledVector(dir, 100);
     const length = from.distanceTo(endpoint);
@@ -48,7 +50,7 @@ export class EffectsSystem {
     const rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
 
     // Thin bright core
-    const beamGeo = new THREE.CylinderGeometry(0.75, 0.75, length, 6, 1);
+    const beamGeo = new THREE.CylinderGeometry(0.25, 0.25, length, 6, 1);
     const beamMat = new THREE.MeshBasicMaterial({
       color: 0xffff00,
       transparent: true,
@@ -60,7 +62,7 @@ export class EffectsSystem {
     group.add(beam);
 
     // Wider outer glow
-    const glowGeo = new THREE.CylinderGeometry(2.5, 2.5, length, 6, 1);
+    const glowGeo = new THREE.CylinderGeometry(0.83, 0.83, length, 6, 1);
     const glowMat = new THREE.MeshBasicMaterial({
       color: 0xffff00,
       transparent: true,

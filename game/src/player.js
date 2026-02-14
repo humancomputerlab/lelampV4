@@ -1,24 +1,57 @@
 import * as THREE from 'three';
+import URDFLoader from 'urdf-loader';
 
 /**
- * Visible player capsule standing at the origin.
+ * Player model loaded from the LeLamp URDF.
  */
 export class PlayerModel {
   constructor(scene) {
-    const geo = new THREE.CapsuleGeometry(0.5, 1.5, 8, 16);
-    const mat = new THREE.MeshPhongMaterial({
-      color: 0x00aaff,
-      emissive: 0x003366,
-      shininess: 60,
-    });
-
-    this.mesh = new THREE.Mesh(geo, mat);
-    this.mesh.position.set(0, 1.25, 0);
+    this.scene = scene;
+    // Placeholder group so references to player.mesh work before load completes
+    this.mesh = new THREE.Group();
+    this.mesh.position.set(0, 0, 0);
     scene.add(this.mesh);
+
+    this.robot = null;
   }
 
-  /** Rotate the capsule to face the given yaw (radians). */
+  /** Load the URDF model. Returns a promise that resolves when ready. */
+  async load() {
+    return new Promise((resolve, reject) => {
+      const loader = new URDFLoader();
+
+      // The URDF references meshes as relative paths like "assets/base_plate.stl".
+      // URDFLoader auto-derives workingPath from the URL ("/models/"),
+      // so "assets/base_plate.stl" resolves to "/models/assets/base_plate.stl".
+      loader.load('/models/robot.urdf', (robot) => {
+        this.robot = robot;
+
+        // URDF is in meters — scale up for the game world
+        robot.scale.set(8, 8, 8);
+
+        // Rotate so the robot stands upright (URDF Z-up → Three.js Y-up)
+        robot.rotation.x = -Math.PI / 2;
+
+        this.mesh.add(robot);
+        resolve();
+      }, undefined, (err) => {
+        reject(err);
+      });
+    });
+  }
+
+  /** Rotate the model to face the given yaw (radians). */
   setYaw(rad) {
     this.mesh.rotation.y = rad;
+  }
+
+  /** Set a named joint to a value (radians). */
+  setJoint(name, value) {
+    if (this.robot) {
+      const joint = this.robot.joints[name];
+      if (joint) {
+        joint.setJointValue(value);
+      }
+    }
   }
 }

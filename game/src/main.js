@@ -282,10 +282,13 @@ function animate() {
 }
 
 // --- Init ---
-function init() {
+async function init() {
   // Connect WebSocket to the server on the same host (or localhost for debug)
   const wsHost = window.location.hostname || 'localhost';
   ws.connect(`ws://${wsHost}:${WS_PORT}`);
+
+  // Load the URDF robot model before starting the game loop
+  await player.load();
 
   initCamera();
   hud.updateHealth(MAX_HEALTH);
