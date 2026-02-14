@@ -10,11 +10,15 @@ export class HUD {
     this.connectionEl = document.getElementById('connection-status');
     this.debugEl = document.getElementById('debug-indicator');
     this.enemyIndicator = document.getElementById('enemy-indicator');
+    this.staminaBarFill = document.getElementById('stamina-bar-fill');
+    this.staminaBarContainer = document.getElementById('stamina-bar-container');
+    this.staminaLabel = document.getElementById('stamina-label');
 
     this.score = 0;
     this.wave = 1;
     this.health = 3;
     this._announceTimeout = null;
+    this._reloadTimeout = null;
   }
 
   setDebugMode(on) {
@@ -68,6 +72,28 @@ export class HUD {
     }, 2000);
   }
 
+  updateStamina(fraction, empty) {
+    this.staminaBarFill.style.width = `${fraction * 100}%`;
+    if (empty) {
+      this.staminaBarContainer.classList.add('empty');
+      this.staminaLabel.classList.add('empty');
+      this.staminaLabel.textContent = 'TILT TO RELOAD';
+    } else {
+      this.staminaBarContainer.classList.remove('empty');
+      this.staminaLabel.classList.remove('empty');
+      this.staminaLabel.textContent = 'STAMINA';
+    }
+  }
+
+  announceReload() {
+    clearTimeout(this._reloadTimeout);
+    this.announceEl.textContent = 'RELOADED!';
+    this.announceEl.style.opacity = '1';
+    this._reloadTimeout = setTimeout(() => {
+      this.announceEl.style.opacity = '0';
+    }, 1000);
+  }
+
   updateEnemyIndicator(angleDeg, opacity, visible) {
     if (!visible) {
       this.enemyIndicator.setAttribute('opacity', '0');
@@ -85,5 +111,6 @@ export class HUD {
     this.updateWave(1);
     this.updateHealth(3);
     this.updateCooldown(0);
+    this.updateStamina(1, false);
   }
 }

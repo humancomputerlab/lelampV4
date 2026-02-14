@@ -129,6 +129,15 @@ ws.addEventListener('position', (e) => {
       player.setJoint(name, rad);
     }
     player._suppressJointLogs();
+
+    // Feed wrist_roll (servo4) to shooting system for reload detection
+    if (e.detail.joints.servo4 !== undefined) {
+      const reloaded = shooting.updateWristRoll(e.detail.joints.servo4);
+      if (reloaded) {
+        hud.announceReload();
+        ws.send({ type: 'reload' });
+      }
+    }
   }
 });
 
@@ -188,6 +197,15 @@ document.getElementById('start-screen').addEventListener('click', () => {
 
 document.getElementById('game-over-screen').addEventListener('click', () => {
   startGame();
+});
+
+// Debug: press R to reload stamina
+window.addEventListener('keydown', (e) => {
+  if (debugMode && e.key === 'r' && gameState === 'playing') {
+    if (shooting.forceReload()) {
+      hud.announceReload();
+    }
+  }
 });
 
 // --- Resize ---
@@ -268,6 +286,9 @@ function animate() {
 
     // Cooldown ring
     hud.updateCooldown(shooting.cooldownProgress);
+
+    // Stamina bar
+    hud.updateStamina(shooting.staminaFraction, shooting.needsReload);
 
     // Wave completion check
     if (enemies.waveComplete) {
