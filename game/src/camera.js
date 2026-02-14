@@ -71,8 +71,12 @@ export class CameraController {
 
   /** Call each frame to position the orbit camera. */
   tick() {
-    // Smooth interpolation
-    this.currentYaw += (this.targetYaw - this.currentYaw) * this.smoothing;
+    // Smooth interpolation (angle-aware for yaw to avoid ±180° wraparound jump)
+    let yawDiff = this.targetYaw - this.currentYaw;
+    // Normalize to [-π, π] so we always take the shortest path
+    yawDiff = ((yawDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
+    if (yawDiff < -Math.PI) yawDiff += 2 * Math.PI;
+    this.currentYaw += yawDiff * this.smoothing;
     this.currentPitch += (this.targetPitch - this.currentPitch) * this.smoothing;
 
     // Aim direction (where the crosshair/player is looking)
