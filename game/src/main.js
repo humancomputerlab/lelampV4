@@ -219,19 +219,31 @@ ws.addEventListener('config', (e) => {
 });
 
 ws.addEventListener('position', (e) => {
-  if (cameraCtrl) {
-    cameraCtrl.update(e.detail.yaw, e.detail.pitch);
+  const data = e.detail;
+
+  // Capture the first position as baseline so the player faces forward on load
+  if (!baselinePosition) {
+    baselinePosition = { yaw: data.yaw, pitch: data.pitch };
   }
-  if (e.detail.joints) {
-    for (const [name, rad] of Object.entries(e.detail.joints)) {
+
+  // Relative yaw/pitch for camera (player starts facing forward = yaw 0)
+  const relYaw = data.yaw - baselinePosition.yaw;
+  const relPitch = data.pitch - baselinePosition.pitch;
+
+  if (cameraCtrl) {
+    cameraCtrl.update(relYaw, relPitch);
+  }
+  if (data.joints) {
+    // Joints stay absolute so the URDF model matches the real robot's pose
+    for (const [name, rad] of Object.entries(data.joints)) {
       if (name === 'servo1') continue; // base yaw handled by camera
       player.setJoint(name, rad);
     }
     player._suppressJointLogs();
 
     // Feed wrist_roll (servo4) to shooting system for reload detection
-    if (e.detail.joints.servo4 !== undefined) {
-      const reloaded = shooting.updateWristRoll(e.detail.joints.servo4);
+    if (data.joints.servo4 !== undefined) {
+      const reloaded = shooting.updateWristRoll(data.joints.servo4);
       if (reloaded) {
         hud.announceReload();
         ws.send({ type: 'reload' });
@@ -239,6 +251,9 @@ ws.addEventListener('position', (e) => {
     }
   }
 });
+
+// --- Baseline position (captured on first position message so player faces forward) ---
+let baselinePosition = null;
 
 // --- Game state ---
 let gameState = 'start'; // 'start' | 'playing' | 'wave_transition' | 'game_over'
