@@ -1,0 +1,557 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape document_id: 1a1833bc4c8907ac4cd99037 / workspace_id: ee4c170496e9a387969f62ff -->
+<robot name="C:/Users/benja/Documents/robot_export/my_robot">
+  <!-- Link base_plate -->
+  <link name="base_plate">
+    <inertial>
+      <origin xyz="-0.000443117 0.00420529 0.00288671" rpy="0 0 0"/>
+      <mass value="0.155027"/>
+      <inertia ixx="0.000332137" ixy="-3.36639e-06" ixz="4.00754e-07" iyy="0.000374494" iyz="6.59039e-07" izz="0.000705028"/>
+    </inertial>
+    <!-- Part base_plate -->
+    <visual>
+      <origin xyz="0 -0 0.0248" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="assets/base_plate.stl"/>
+      </geometry>
+      <material name="base_plate_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0 0.0248" rpy="0 -0 0"/>
+      <geometry>
+        <mesh filename="assets/base_plate.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link base_subassembly -->
+  <link name="base_subassembly">
+    <inertial>
+      <origin xyz="-0.00446763 0.000550215 -0.0283352" rpy="0 0 0"/>
+      <mass value="0.495716"/>
+      <inertia ixx="0.00145708" ixy="-5.83622e-06" ixz="-1.08294e-05" iyy="0.00165832" iyz="3.63143e-06" izz="0.00277014"/>
+    </inertial>
+    <!-- Part base_core -->
+    <visual>
+      <origin xyz="-0.00011 -0 -0.00641995" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/base_core.stl"/>
+      </geometry>
+      <material name="base_core_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.00011 -0 -0.00641995" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/base_core.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part base_cover -->
+    <visual>
+      <origin xyz="-0.00011 -0 -0.00641995" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/base_cover.stl"/>
+      </geometry>
+      <material name="base_cover_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.00011 -0 -0.00641995" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/base_cover.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac1 -->
+    <visual>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 -0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+      <material name="ac1_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 -0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac2 -->
+    <visual>
+      <origin xyz="-0 -0.0125 -0.0526" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+      <material name="ac2_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0 -0.0125 -0.0526" rpy="3.14159 0 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part main -->
+    <visual>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 -0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+      <material name="main_material">
+        <color rgba="0.247059 0.247059 0.247059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 -0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac1_2 -->
+    <visual>
+      <origin xyz="-0.05211 0.000792786 -0.04603" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+      <material name="ac1_2_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.05211 0.000792786 -0.04603" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac2_2 -->
+    <visual>
+      <origin xyz="-0.03961 -0.0331072 -0.05853" rpy="-1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+      <material name="ac2_2_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.03961 -0.0331072 -0.05853" rpy="-1.5708 0 3.14159"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part main_2 -->
+    <visual>
+      <origin xyz="-0.05211 0.000792786 -0.04603" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+      <material name="main_2_material">
+        <color rgba="0.247059 0.247059 0.247059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.05211 0.000792786 -0.04603" rpy="-1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link bottom_link_subassembly -->
+  <link name="bottom_link_subassembly">
+    <inertial>
+      <origin xyz="0.0915618 -0.040205 0.022213" rpy="0 0 0"/>
+      <mass value="0.116218"/>
+      <inertia ixx="9.55792e-05" ixy="0.00013276" ixz="-1e-11" iyy="0.000339628" iyz="4e-12" izz="0.000377232"/>
+    </inertial>
+    <!-- Part wire_cover -->
+    <visual>
+      <origin xyz="0 -0 0.01875" rpy="-0.109845 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/wire_cover.stl"/>
+      </geometry>
+      <material name="wire_cover_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0 0.01875" rpy="-0.109845 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/wire_cover.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part bottom_link -->
+    <visual>
+      <origin xyz="0 -0 0.01875" rpy="-0.109845 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/bottom_link.stl"/>
+      </geometry>
+      <material name="bottom_link_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0 0.01875" rpy="-0.109845 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/bottom_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link top_link_subassembly -->
+  <link name="top_link_subassembly">
+    <inertial>
+      <origin xyz="-0.00059492 0.0466739 -0.019299" rpy="0 0 0"/>
+      <mass value="0.374214"/>
+      <inertia ixx="0.00208717" ixy="-0.00129841" ixz="4.19603e-07" iyy="0.000993664" iyz="2.39523e-06" izz="0.00297008"/>
+    </inertial>
+    <!-- Part top_link_wire_cover -->
+    <visual>
+      <origin xyz="0.0491092 0.144904 -0.0194359" rpy="-0.523599 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/top_link_wire_cover.stl"/>
+      </geometry>
+      <material name="top_link_wire_cover_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0491092 0.144904 -0.0194359" rpy="-0.523599 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/top_link_wire_cover.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part top_link -->
+    <visual>
+      <origin xyz="0.0491092 0.144904 -0.0194359" rpy="-0.523599 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/top_link.stl"/>
+      </geometry>
+      <material name="top_link_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0491092 0.144904 -0.0194359" rpy="-0.523599 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/top_link.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac1_3 -->
+    <visual>
+      <origin xyz="0.0613346 0.141079 -0.0194359" rpy="1.5708 -0 2.61799"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+      <material name="ac1_3_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0613346 0.141079 -0.0194359" rpy="1.5708 -0 2.61799"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac2_3 -->
+    <visual>
+      <origin xyz="0.0335592 0.11797 -0.0319359" rpy="1.0472 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+      <material name="ac2_3_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0335592 0.11797 -0.0319359" rpy="1.0472 -1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part main_3 -->
+    <visual>
+      <origin xyz="0.0613346 0.141079 -0.0194359" rpy="1.5708 -0 2.61799"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+      <material name="main_3_material">
+        <color rgba="0.247059 0.247059 0.247059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0613346 0.141079 -0.0194359" rpy="1.5708 -0 2.61799"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac1_4 -->
+    <visual>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+      <material name="ac1_4_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0125 0 -0.0187" rpy="-0 -0 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac2_4 -->
+    <visual>
+      <origin xyz="0 -0.0125 -0.0526" rpy="-3.14159 -1e-12 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+      <material name="ac2_4_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.0125 -0.0526" rpy="-3.14159 -1e-12 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part main_4 -->
+    <visual>
+      <origin xyz="-0.0125 0 -0.0187" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+      <material name="main_4_material">
+        <color rgba="0.247059 0.247059 0.247059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0125 0 -0.0187" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link head_link_subassembly -->
+  <link name="head_link_subassembly">
+    <inertial>
+      <origin xyz="0.000732718 2.27e-10 -0.027586" rpy="0 0 0"/>
+      <mass value="0.0608397"/>
+      <inertia ixx="1.71815e-05" ixy="9e-12" ixz="3.7519e-07" iyy="1.94049e-05" iyz="-1e-12" izz="1.19493e-05"/>
+    </inertial>
+    <!-- Part head_link -->
+    <visual>
+      <origin xyz="0 0 -0.0427" rpy="-1.5708 -0 0"/>
+      <geometry>
+        <mesh filename="assets/head_link.stl"/>
+      </geometry>
+      <material name="head_link_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.0427" rpy="-1.5708 -0 0"/>
+      <geometry>
+        <mesh filename="assets/head_link.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac1_5 -->
+    <visual>
+      <origin xyz="0.000883432 -0 -0.03011" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+      <material name="ac1_5_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.000883432 -0 -0.03011" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/ac1.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part ac2_5 -->
+    <visual>
+      <origin xyz="-0.0330166 -0.0125 -0.04261" rpy="-1.5708 1e-12 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+      <material name="ac2_5_material">
+        <color rgba="0.960784 0.960784 0.964706 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.0330166 -0.0125 -0.04261" rpy="-1.5708 1e-12 1.5708"/>
+      <geometry>
+        <mesh filename="assets/ac2.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part main_5 -->
+    <visual>
+      <origin xyz="0.000883432 -0 -0.03011" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+      <material name="main_5_material">
+        <color rgba="0.247059 0.247059 0.247059 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.000883432 -0 -0.03011" rpy="0 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/main.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Link head_subassembly -->
+  <link name="head_subassembly">
+    <inertial>
+      <origin xyz="0.0542084 0.000518535 0.0187479" rpy="0 0 0"/>
+      <mass value="0.249707"/>
+      <inertia ixx="0.000578634" ixy="-8.77052e-06" ixz="1.687e-08" iyy="0.000828143" iyz="-6.12e-10" izz="0.000789137"/>
+    </inertial>
+    <!-- Part head_diffuser -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/head_diffuser.stl"/>
+      </geometry>
+      <material name="head_diffuser_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/head_diffuser.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part led_mount -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/led_mount.stl"/>
+      </geometry>
+      <material name="led_mount_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/led_mount.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part head_core -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/head_core.stl"/>
+      </geometry>
+      <material name="head_core_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/head_core.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part shade -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/shade.stl"/>
+      </geometry>
+      <material name="shade_material">
+        <color rgba="0.615686 0.811765 0.929412 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/shade.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part fade_diffuser -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/fade_diffuser.stl"/>
+      </geometry>
+      <material name="fade_diffuser_material">
+        <color rgba="0.262745 0.282353 0.301961 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/fade_diffuser.stl"/>
+      </geometry>
+    </collision>
+    <!-- Part camera_mount -->
+    <visual>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/camera_mount.stl"/>
+      </geometry>
+      <material name="camera_mount_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01875" rpy="1.5708 1.5708 0"/>
+      <geometry>
+        <mesh filename="assets/camera_mount.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from head_link_subassembly to head_subassembly -->
+  <joint name="servo5" type="revolute">
+    <origin xyz="0.0195834 -0 -0.04261" rpy="1.5708 1.53584 -1.5708"/>
+    <parent link="head_link_subassembly"/>
+    <child link="head_subassembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.37886" upper="1.18677"/>
+  </joint>
+  <!-- Joint from top_link_subassembly to head_link_subassembly -->
+  <joint name="servo4" type="revolute">
+    <origin xyz="0.0598592 0.163523 -0.0194359" rpy="1.0472 -1.5708 0"/>
+    <parent link="top_link_subassembly"/>
+    <child link="head_link_subassembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
+  </joint>
+  <!-- Joint from bottom_link_subassembly to top_link_subassembly -->
+  <joint name="servo3" type="revolute">
+    <origin xyz="0.183124 -0.0804099 -0" rpy="3.14159 -0 2.6358"/>
+    <parent link="bottom_link_subassembly"/>
+    <child link="top_link_subassembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.903613" upper="1.47876"/>
+  </joint>
+  <!-- Joint from base_subassembly to bottom_link_subassembly -->
+  <joint name="servo2" type="revolute">
+    <origin xyz="-0.05211 0.0194928 -0.05853" rpy="1.5708 1.5708 0"/>
+    <parent link="base_subassembly"/>
+    <child link="bottom_link_subassembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-1.15704" upper="1.98455"/>
+  </joint>
+  <!-- Joint from base_plate to base_subassembly -->
+  <joint name="servo1" type="revolute">
+    <origin xyz="0 0 0.01834" rpy="-3.14159 -0 1.5708"/>
+    <parent link="base_plate"/>
+    <child link="base_subassembly"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-3.14159" upper="3.14159"/>
+  </joint>
+</robot>
