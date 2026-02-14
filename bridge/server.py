@@ -49,6 +49,7 @@ def load_calibration() -> dict | None:
 
 
 async def broadcast(message: dict):
+    global connected_clients
     if not connected_clients:
         return
     data = json.dumps(message)
