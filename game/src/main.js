@@ -125,6 +125,7 @@ ws.addEventListener('position', (e) => {
   }
   if (e.detail.joints) {
     for (const [name, rad] of Object.entries(e.detail.joints)) {
+      if (name === 'servo1') continue; // base yaw handled by camera
       player.setJoint(name, rad);
     }
     player._suppressJointLogs();
