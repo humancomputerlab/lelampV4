@@ -42,11 +42,15 @@ class Agent:
         self.instruction = system_prompt
         self.tool_registry={}
         self.tools_schema=[]
-        
+
         # Controller instances
         self.servo_controller = None
         self.rgb_controller = None
         self.vision_controller = None
+
+        # Sleep state
+        self.is_sleeping = False
+        self.llm = None  # Back-reference to LLM, set by LLM.__init__
     
     def set_servo_controller(self, controller):
         """Set servo controller instance"""
@@ -59,6 +63,15 @@ class Agent:
     def set_vision_controller(self, controller):
         """Set vision controller instance"""
         self.vision_controller = controller
+
+    async def update_sleep_state(self, is_sleeping: bool):
+        """Update sleep state and push new instructions to OpenAI session."""
+        old_val = "is_sleeping = True" if self.is_sleeping else "is_sleeping = False"
+        new_val = "is_sleeping = True" if is_sleeping else "is_sleeping = False"
+        self.is_sleeping = is_sleeping
+        self.instruction = self.instruction.replace(old_val, new_val)
+        if self.llm:
+            await self.llm.update_session_instructions()
 
     def load_personality_prompt(self):
         with open("personality/characters/LeLamp.json", 'r', encoding='utf-8') as f:
@@ -202,6 +215,8 @@ class LLM:
         self.buffer_lock = threading.Lock()
 
         self.agent = Agent()
+        self.agent.llm = self
+        self.ws = None
 
         self.device = self.get_audio_device_id()
         
@@ -338,6 +353,9 @@ class LLM:
                 print(delta, end="", flush=True)
 
             elif event_type == "response.audio.delta":
+                # Suppress audio output while sleeping
+                if self.agent.is_sleeping:
+                    continue
                 # Decode and play audio chunk
                 audio_b64 = event.get("delta", "")
                 if audio_b64:
@@ -367,7 +385,23 @@ class LLM:
                 arguments = event["arguments"]
 
                 print(f"\n[System] AI requests tool call: {name}({arguments})")
-                
+
+                # While sleeping, only allow wake_up — block everything else
+                if self.agent.is_sleeping and name != "wake_up":
+                    print(f"[System] Blocked tool call while sleeping: {name}")
+                    # Must still send function_call_output to satisfy the API protocol
+                    block_event = {
+                        "type": "conversation.item.create",
+                        "item": {
+                            "type": "function_call_output",
+                            "call_id": call_id,
+                            "output": "LeLamp is sleeping. Only wake_up is allowed."
+                        }
+                    }
+                    await websocket.send(json.dumps(block_event))
+                    # Do NOT send response.create — stay silent
+                    continue
+
                 # Special handling for get_scene: send image directly to LLM
                 if name == "get_scene" and self.vision_controller:
                     image_b64 = self.vision_controller.get_latest_image()
@@ -394,7 +428,7 @@ class LLM:
                         output_str = "No image available from camera."
                 else:
                     output_str = await self.agent.execute(name, arguments, self.agent)
-                
+
                 print(output_str)
                 # 1. Create a new conversation item (Item) consisting of tool output
                 item_create_event = {
@@ -474,6 +508,18 @@ class LLM:
                 logger.error(f"Error sending image: {e}")
                 await asyncio.sleep(1.0)
 
+    async def update_session_instructions(self):
+        """Push updated system prompt to the OpenAI Realtime session."""
+        if self.ws:
+            session_update = {
+                "type": "session.update",
+                "session": {
+                    "instructions": self.agent.instruction
+                }
+            }
+            await self.ws.send(json.dumps(session_update))
+            logger.info("Session instructions updated")
+
     async def start(self):
         headers = {
             "Authorization": "Bearer " + self.API_KEY,
@@ -488,6 +534,7 @@ class LLM:
             ping_timeout=60,       # Wait 60 seconds for pong response
             close_timeout=10       # Graceful close timeout
         ) as websocket:
+            self.ws = websocket
 
             # 1. Initialize session (Optional: set voice, VAD mode, etc.)
             session_update = {

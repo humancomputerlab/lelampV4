@@ -331,6 +331,82 @@ async def stop_rgb_animation(agent) -> str:
         return f"停止 RGB 动画时出错: {str(e)}"
 
 
+# ================== 睡眠/唤醒工具函数 ==================
+
+@tool
+async def go_to_sleep(agent) -> str:
+    """
+    IMPORTANT: You should only call this function when the user explicitly says "goodnight" or asks to go to sleep. You should NEVER call this function otherwise.
+    进入睡眠模式。关闭所有灯光和动画，停止所有舵机动作，将身体归位。
+    睡眠后将不再回应用户，直到被唤醒。
+    当用户说晚安、去睡觉等意图时调用此函数。
+
+    Returns:
+        操作结果消息
+    """
+    print("[Tool] go_to_sleep 被调用")
+
+    try:
+        # 1. Stop RGB animations and turn off LEDs
+        if agent.rgb_controller:
+            await agent.rgb_controller.stop()
+
+        # 2. Disable idle animation
+        if agent.servo_controller:
+            agent.servo_controller.set_idle_animation(None)
+
+        # 3. Stop current servo playback
+        if agent.servo_controller:
+            await agent.servo_controller.stop_playback()
+
+        # 4. Move servos to sleep pose
+        if agent.servo_controller:
+            sleep_positions = {
+                "base_yaw": 1.6049787094660957,
+                "base_pitch": -92.73066169617894,
+                "elbow_pitch": -97.96875,
+                "wrist_roll": -3.5775127768313553,
+                "wrist_pitch": 16.213683223992504,
+            }
+            agent.servo_controller.write_position(sleep_positions)
+
+        # 5. Update sleep state and push to OpenAI session
+        await agent.update_sleep_state(True)
+
+        return "已进入睡眠模式。灯光已关闭，身体已归位。"
+    except Exception as e:
+        return f"进入睡眠模式时出错: {str(e)}"
+
+
+@tool
+async def wake_up(agent) -> str:
+    """
+    IMPORTANT: You should only call this function when the user explicitly says "lelamp, wake up". You should NEVER call this function otherwise.
+    从睡眠模式中唤醒。恢复灯光和空闲动画，重新开始正常响应。
+    当用户说早安、醒醒、起床等意图时调用此函数。
+
+    Returns:
+        操作结果消息
+    """
+    print("[Tool] wake_up 被调用")
+
+    try:
+        # 1. Update sleep state and push to OpenAI session
+        await agent.update_sleep_state(False)
+
+        # 2. Restore idle animation
+        if agent.servo_controller:
+            agent.servo_controller.set_idle_animation("idle.csv")
+
+        # 3. Set LED to white
+        if agent.rgb_controller:
+            agent.rgb_controller.set_solid(255, 255, 255)
+
+        return "已唤醒！灯光和动画已恢复。"
+    except Exception as e:
+        return f"唤醒时出错: {str(e)}"
+
+
 # ================== 内部动画函数 ==================
 
 async def _rainbow_animation(pixels):
