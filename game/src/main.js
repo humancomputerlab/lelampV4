@@ -127,6 +127,7 @@ ws.addEventListener('position', (e) => {
     for (const [name, rad] of Object.entries(e.detail.joints)) {
       player.setJoint(name, rad);
     }
+    player._suppressJointLogs();
   }
 });
 

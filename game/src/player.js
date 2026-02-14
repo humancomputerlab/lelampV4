@@ -25,6 +25,7 @@ export class PlayerModel {
       // so "assets/base_plate.stl" resolves to "/models/assets/base_plate.stl".
       loader.load('/models/robot.urdf', (robot) => {
         this.robot = robot;
+        console.log('[Player] URDF loaded. Available joints:', Object.keys(robot.joints));
 
         // URDF is in meters — scale up for the game world
         robot.scale.set(8, 8, 8);
@@ -50,8 +51,18 @@ export class PlayerModel {
     if (this.robot) {
       const joint = this.robot.joints[name];
       if (joint) {
-        joint.setJointValue(value);
+        const changed = joint.setJointValue(value);
+        if (!this._loggedJoints) {
+          console.log(`[Player] setJoint("${name}", ${value}) changed=${changed}`);
+        }
+      } else if (!this._loggedJoints) {
+        console.warn(`[Player] Joint "${name}" not found in robot.joints`);
       }
     }
+  }
+
+  /** Call once after first setJoint batch to suppress further logs. */
+  _suppressJointLogs() {
+    this._loggedJoints = true;
   }
 }
