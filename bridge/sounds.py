@@ -7,14 +7,22 @@ logger = logging.getLogger(__name__)
 
 _shoot_data = None
 _shoot_sr = None
+_device = None
 
 try:
     import sounddevice as sd
     import soundfile as sf
 
+    # Use PipeWire device (same as TTS)
+    for i, dev in enumerate(sd.query_devices()):
+        if 'pipewire' in dev['name'].lower():
+            _device = i
+            break
+
     _wav_path = Path(__file__).parent / "sounds" / "laser.wav"
     if _wav_path.exists():
         _shoot_data, _shoot_sr = sf.read(_wav_path, dtype="float32")
+        _shoot_data = _shoot_data * 0.2  # 20% volume
         logger.info(f"Loaded laser sound: {len(_shoot_data)} samples @ {_shoot_sr}Hz")
     else:
         logger.warning(f"laser.wav not found at {_wav_path}")
@@ -28,7 +36,7 @@ def play_shoot():
     if sd is None or _shoot_data is None:
         return
     try:
-        sd.play(_shoot_data, _shoot_sr)
+        sd.play(_shoot_data, _shoot_sr, device=_device)
     except Exception as e:
         logger.error(f"Failed to play shoot sound: {e}")
 

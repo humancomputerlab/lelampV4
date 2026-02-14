@@ -68,8 +68,8 @@ async def handle_game_event(event: dict):
     global rgb_controller
     event_type = event.get("type")
 
-    # if event_type == "shoot":
-    #     play_shoot()
+    if event_type == "shoot":
+        play_shoot()
 
     if rgb_controller is None:
         return
