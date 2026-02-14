@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 
-const SPAWN_RADIUS = 50;
+const SPAWN_DEPTH = 55;       // z distance where enemies spawn (just in front of far wall)
+const SPAWN_HALF_WIDTH = 35;  // horizontal spread at spawn (slightly inside the far wall width)
+const SPAWN_MAX_HEIGHT = 20;  // max height enemies spawn at
 const REACH_DISTANCE = 3;
 
 export class EnemySystem {
@@ -92,14 +94,10 @@ export class EnemySystem {
   }
 
   _spawnOne() {
-    // Random point on sphere
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-
-    const x = SPAWN_RADIUS * Math.sin(phi) * Math.cos(theta);
-    const z = SPAWN_RADIUS * Math.sin(phi) * Math.sin(theta);
-    // Upper hemisphere only: y always positive
-    const y = SPAWN_RADIUS * Math.abs(Math.cos(phi)) + 2;
+    // Spawn at the far end of the corridor, spread across the wall
+    const x = (Math.random() * 2 - 1) * SPAWN_HALF_WIDTH;
+    const y = 1 + Math.random() * SPAWN_MAX_HEIGHT;
+    const z = -SPAWN_DEPTH;
 
     const pos = new THREE.Vector3(x, y, z);
 

@@ -9,7 +9,7 @@ export class PlayerModel {
     this.scene = scene;
     // Placeholder group so references to player.mesh work before load completes
     this.mesh = new THREE.Group();
-    this.mesh.position.set(0, 0, 0);
+    this.mesh.position.set(0, 0, 2);
     scene.add(this.mesh);
 
     this.robot = null;

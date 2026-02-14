@@ -6,7 +6,7 @@ const DEG2RAD = Math.PI / 180;
 const ORBIT_DIST = 3;           // sphere radius (distance from player)
 const SHOULDER_OFFSET_X = 1.5;  // aim point right of player (player shifts left on screen)
 const SHOULDER_OFFSET_Y = 0.8;  // aim point above player (player shifts down on screen)
-const PLAYER_CENTER = new THREE.Vector3(0, 1.25, 0); // player capsule center
+const PLAYER_CENTER = new THREE.Vector3(0, 1.25, 2); // player capsule center
 
 const PITCH_MIN = -85 * DEG2RAD;
 const PITCH_MAX = 80 * DEG2RAD;

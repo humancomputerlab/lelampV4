@@ -20,8 +20,8 @@ const godMode = urlParams.has('godmode');
 
 // --- Three.js setup ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x888888);
-scene.fog = new THREE.Fog(0x888888, 40, 80);
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog(0x000000, 40, 80);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(0, 0, 0);
@@ -32,12 +32,19 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
 // Lighting
-const ambient = new THREE.AmbientLight(0x808080, 0.8);
+const ambient = new THREE.AmbientLight(0x808080, 1.2);
 scene.add(ambient);
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(10, 20, 10);
 scene.add(dirLight);
+
+// Light aimed at the far wall so it's not dark
+const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+frontLight.position.set(0, 15, 5);
+frontLight.target.position.set(0, 10, -60);
+scene.add(frontLight);
+scene.add(frontLight.target);
 
 // Warehouse walls
 function createGridTexture() {
@@ -73,28 +80,118 @@ function createGridTexture() {
 }
 
 {
-  const wallSize = 120;
-  const halfSize = wallSize / 2;
-  const wallGeo = new THREE.PlaneGeometry(wallSize, wallSize);
+  // Corridor that expands into a larger room ahead
+  // Narrow near the player, wide at the far end (funnel shape)
+  const corridorLength = 60;   // depth from player to front wall
+  const nearHalfWidth = 5;     // half-width at the player end
+  const farHalfWidth = 40;     // half-width at the far end
+  const wallHeight = 30;
 
-  const walls = [
-    { pos: [0, 0, -halfSize], rot: [0, 0, 0] },           // front
-    { pos: [0, 0, halfSize], rot: [0, Math.PI, 0] },       // back
-    { pos: [-halfSize, 0, 0], rot: [0, Math.PI / 2, 0] },  // left
-    { pos: [halfSize, 0, 0], rot: [0, -Math.PI / 2, 0] },  // right
-    { pos: [0, -0.5, 0], rot: [-Math.PI / 2, 0, 0], floor: true }, // floor
-    { pos: [0, halfSize, 0], rot: [Math.PI / 2, 0, 0] },   // ceiling
-  ];
-
-  for (const w of walls) {
-    const tex = createGridTexture();
-    if (w.floor) tex.repeat.set(16, 16);
-    const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.FrontSide });
-    const mesh = new THREE.Mesh(wallGeo, mat);
-    mesh.position.set(...w.pos);
-    mesh.rotation.set(...w.rot);
-    scene.add(mesh);
+  // Side wall geometry: a trapezoid built from two triangles
+  // Each side wall goes from (±nearHalfWidth, 0) to (±farHalfWidth, -corridorLength)
+  // We build custom geometry for the angled walls
+  function buildSideWall(nearX, farX, side) {
+    // 'side' = 1 for right wall, -1 for left wall (controls normal direction)
+    const geo = new THREE.BufferGeometry();
+    const halfH = wallHeight / 2;
+    // Vertices: near-bottom, near-top, far-bottom, far-top
+    const vertices = new Float32Array([
+      nearX, -halfH, 0,            // 0: near bottom
+      nearX,  halfH, 0,            // 1: near top
+      farX,  -halfH, -corridorLength, // 2: far bottom
+      farX,   halfH, -corridorLength, // 3: far top
+    ]);
+    // Two triangles, wound so normal faces inward
+    let indices;
+    if (side > 0) {
+      // Right wall: normal faces -X (inward)
+      indices = [0, 2, 1, 1, 2, 3];
+    } else {
+      // Left wall: normal faces +X (inward)
+      indices = [0, 1, 2, 1, 3, 2];
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    // UVs for texturing
+    const uvs = new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]);
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geo.computeVertexNormals();
+    return geo;
   }
+
+  // Front wall (wide, at the far end)
+  const frontWallWidth = farHalfWidth * 2;
+  const frontWallGeo = new THREE.PlaneGeometry(frontWallWidth, wallHeight);
+  const frontTex = createGridTexture();
+  const frontMat = new THREE.MeshStandardMaterial({ map: frontTex, side: THREE.FrontSide });
+  const frontMesh = new THREE.Mesh(frontWallGeo, frontMat);
+  frontMesh.position.set(0, wallHeight / 2 - 0.5, -corridorLength);
+  scene.add(frontMesh);
+
+  // Left wall (angled portion: player to far end)
+  const leftGeo = buildSideWall(-nearHalfWidth, -farHalfWidth, -1);
+  const leftTex = createGridTexture();
+  const leftMat = new THREE.MeshStandardMaterial({ map: leftTex, side: THREE.DoubleSide });
+  const leftMesh = new THREE.Mesh(leftGeo, leftMat);
+  leftMesh.position.y = wallHeight / 2 - 0.5;
+  scene.add(leftMesh);
+
+  // Right wall (angled portion: player to far end)
+  const rightGeo = buildSideWall(nearHalfWidth, farHalfWidth, 1);
+  const rightTex = createGridTexture();
+  const rightMat = new THREE.MeshStandardMaterial({ map: rightTex, side: THREE.DoubleSide });
+  const rightMesh = new THREE.Mesh(rightGeo, rightMat);
+  rightMesh.position.y = wallHeight / 2 - 0.5;
+  scene.add(rightMesh);
+
+  // Straight extensions behind the player (z=0 to z=+behindLength) at nearHalfWidth
+  const behindLength = 15;
+  const behindWallGeo = new THREE.PlaneGeometry(behindLength, wallHeight);
+
+  // Left behind extension
+  const leftBehindTex = createGridTexture();
+  const leftBehindMat = new THREE.MeshStandardMaterial({ map: leftBehindTex, side: THREE.DoubleSide });
+  const leftBehindMesh = new THREE.Mesh(behindWallGeo, leftBehindMat);
+  leftBehindMesh.position.set(-nearHalfWidth, wallHeight / 2 - 0.5, behindLength / 2);
+  leftBehindMesh.rotation.set(0, Math.PI / 2, 0);
+  scene.add(leftBehindMesh);
+
+  // Right behind extension
+  const rightBehindTex = createGridTexture();
+  const rightBehindMat = new THREE.MeshStandardMaterial({ map: rightBehindTex, side: THREE.DoubleSide });
+  const rightBehindMesh = new THREE.Mesh(behindWallGeo, rightBehindMat);
+  rightBehindMesh.position.set(nearHalfWidth, wallHeight / 2 - 0.5, behindLength / 2);
+  rightBehindMesh.rotation.set(0, Math.PI / 2, 0);
+  scene.add(rightBehindMesh);
+
+  // Back wall connecting the two extensions (dead end)
+  const backWallWidth = nearHalfWidth * 2;
+  const backWallGeo = new THREE.PlaneGeometry(backWallWidth, wallHeight);
+  const backTex = createGridTexture();
+  const backMat = new THREE.MeshStandardMaterial({ map: backTex, side: THREE.FrontSide });
+  const backMesh = new THREE.Mesh(backWallGeo, backMat);
+  backMesh.position.set(0, wallHeight / 2 - 0.5, behindLength);
+  backMesh.rotation.set(0, Math.PI, 0);
+  scene.add(backMesh);
+
+  // Floor (full rectangular, extends under the corridor)
+  const floorGeo = new THREE.PlaneGeometry(farHalfWidth * 2, corridorLength * 1.5);
+  const floorTex = createGridTexture();
+  floorTex.repeat.set(8, 8);
+  const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, side: THREE.FrontSide });
+  const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.position.set(0, -0.5, -corridorLength * 0.4);
+  scene.add(floorMesh);
+
+  // Ceiling
+  const ceilGeo = new THREE.PlaneGeometry(farHalfWidth * 2, corridorLength * 1.5);
+  const ceilTex = createGridTexture();
+  const ceilMat = new THREE.MeshStandardMaterial({ map: ceilTex, side: THREE.FrontSide });
+  const ceilMesh = new THREE.Mesh(ceilGeo, ceilMat);
+  ceilMesh.rotation.x = Math.PI / 2;
+  ceilMesh.position.set(0, wallHeight - 0.5, -corridorLength * 0.4);
+  scene.add(ceilMesh);
 }
 
 // --- Systems ---
