@@ -123,6 +123,11 @@ ws.addEventListener('position', (e) => {
   if (cameraCtrl) {
     cameraCtrl.update(e.detail.yaw, e.detail.pitch);
   }
+  if (e.detail.joints) {
+    for (const [name, rad] of Object.entries(e.detail.joints)) {
+      player.setJoint(name, rad);
+    }
+  }
 });
 
 // --- Game state ---

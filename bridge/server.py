@@ -13,7 +13,7 @@ from pathlib import Path
 
 import websockets
 
-from .forward_kinematics import compute_fk
+from .forward_kinematics import compute_fk, joints_to_radians
 from .sounds import play_shoot
 
 logger = logging.getLogger(__name__)
@@ -68,8 +68,8 @@ async def handle_game_event(event: dict):
     global rgb_controller
     event_type = event.get("type")
 
-    if event_type == "shoot":
-        play_shoot()
+    # if event_type == "shoot":
+    #     play_shoot()
 
     if rgb_controller is None:
         return
@@ -180,10 +180,12 @@ async def servo_poll_loop():
         try:
             positions = servo_controller.read_position()
             yaw, pitch = compute_fk(positions, calibration_data)
+            joints = joints_to_radians(positions, calibration_data)
             await broadcast({
                 "type": "position",
                 "yaw": round(yaw, 2),
                 "pitch": round(pitch, 2),
+                "joints": joints,
             })
         except Exception as e:
             logger.error(f"Servo poll error: {e}")

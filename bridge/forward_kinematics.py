@@ -77,12 +77,45 @@ def normalized_to_radians(
 ) -> float:
     """Convert a normalized position (-100..100) to radians.
 
-    range_min and range_max are the calibration values in degrees
+    range_min and range_max are raw servo pulse values (0-4095 for 360°)
     that correspond to -100 and +100 respectively.
     """
+    pulse_range = range_max - range_min
+    degrees_per_pulse = 360.0 / 4096.0
+    total_degrees = pulse_range * degrees_per_pulse
     frac = (normalized + 100.0) / 200.0
-    degrees = range_min + frac * (range_max - range_min)
+    degrees = -total_degrees / 2 + frac * total_degrees
     return math.radians(degrees)
+
+
+MOTOR_TO_JOINT = {
+    "base_yaw": "servo1",
+    "base_pitch": "servo2",
+    "elbow_pitch": "servo3",
+    "wrist_roll": "servo4",
+    "wrist_pitch": "servo5",
+}
+
+
+def joints_to_radians(
+    joint_positions: dict[str, float],
+    calibration: dict | None = None,
+) -> dict[str, float]:
+    """Convert all normalized positions to radians, keyed by URDF joint name."""
+    result = {}
+    for motor_name, joint_name in MOTOR_TO_JOINT.items():
+        norm_val = joint_positions.get(motor_name, 0.0)
+        if calibration and motor_name in calibration:
+            cal = calibration[motor_name]
+            rad = normalized_to_radians(
+                norm_val,
+                cal.get("range_min", -180),
+                cal.get("range_max", 180),
+            )
+        else:
+            rad = math.radians(norm_val * 1.8)
+        result[joint_name] = round(rad, 4)
+    return result
 
 
 def compute_fk(
@@ -124,9 +157,9 @@ def compute_fk(
         T_origin = _transform_from_origin(*origin)
         T = T @ T_origin @ _rot_z(angle)
 
-    # The forward direction of the end-effector is its local Z-axis
-    # (the joint axis), projected into world frame
-    forward = T[:3, 2]
+    # The forward direction of the end-effector is its local X-axis
+    # (the light ray / pointing direction), projected into world frame
+    forward = T[:3, 0]
 
     # Extract yaw/pitch from the forward vector
     # yaw: rotation around world Z (horizontal aiming)
@@ -134,4 +167,4 @@ def compute_fk(
     yaw_rad = math.atan2(forward[1], forward[0])
     pitch_rad = math.asin(np.clip(forward[2], -1.0, 1.0))
 
-    return math.degrees(yaw_rad), math.degrees(pitch_rad)
+    return math.degrees(yaw_rad), -math.degrees(pitch_rad)
