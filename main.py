@@ -83,7 +83,13 @@ async def main():
         
         # Save event loop reference for callback use
         llm.loop = asyncio.get_event_loop()
-        
+
+        # Start web dashboard
+        from web_server import WebServer
+        web = WebServer(servo_controller, rgb_controller, vision_controller, llm, asyncio.get_event_loop())
+        web.start()
+        print("   ✅ Web dashboard at http://0.0.0.0:8080")
+
         # Start LLM
         await llm.start()
         
