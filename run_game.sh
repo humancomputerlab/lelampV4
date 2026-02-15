@@ -22,7 +22,7 @@ case "$choice" in
     1)
         echo "Installing Python dependencies..."
         cd "$SCRIPT_DIR"
-        uv sync
+        uv sync --extra pi
 
         echo ""
         echo "Did you SSH in with port forwarding?"
